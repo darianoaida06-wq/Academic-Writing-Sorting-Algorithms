@@ -4,14 +4,21 @@
 #include <stdbool.h>
 #include <string.h>
 
-
+// --- Utility Functions ---
 void swap(int *a, int *b) {
     int temp = *a;
     *a = *b;
     *b = temp;
 }
+void print_first_n_elements(int arr[], int n, int limit) {
+    int count = (n < limit) ? n : limit;
 
-
+    printf("[ ");
+    for (int i = 0; i < count; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("... ]\n");
+}
 int compare_ints(const void *a, const void *b) {
     return (*(int*)a - *(int*)b);
 }
@@ -60,7 +67,6 @@ void merge(int arr[], int l, int m, int r) {
     int n1 = m - l + 1;
     int n2 = r - m;
 
-    // Allocate temporary arrays
     int *L = (int *)malloc(n1 * sizeof(int));
     int *R = (int *)malloc(n2 * sizeof(int));
 
@@ -101,10 +107,8 @@ void merge_sort(int arr[], int n) {
 
 // Quick Sort Helpers
 int partition(int arr[], int low, int high) {
-
     int mid = low + (high - low) / 2;
     swap(&arr[mid], &arr[high]);
-   
 
     int pivot = arr[high];
     int i = (low - 1);
@@ -145,7 +149,7 @@ void generate_data(int arr[], int size, const char* data_type) {
         for (int i = 0; i < size; i++) arr[i] = size - i;
     } else if (strcmp(data_type, "almost_sorted") == 0) {
         for (int i = 0; i < size; i++) arr[i] = i;
-        int swaps = size * 0.02; 
+        int swaps = size * 0.02; /
         if (swaps < 1) swaps = 1;
         for (int i = 0; i < swaps; i++) {
             int idx1 = rand() % size;
@@ -161,7 +165,6 @@ void generate_data(int arr[], int size, const char* data_type) {
 typedef void (*SortFunction)(int[], int);
 
 void run_test(FILE *csv_file, const char* algo_name, SortFunction sort_func, int *base_data, int size, const char* dtype) {
-    // Skip O(N^2) algorithms for large datasets so you don't wait hours
     if (size > 20000 && (strcmp(algo_name, "Bubble") == 0 ||
                          strcmp(algo_name, "Insertion") == 0 ||
                          strcmp(algo_name, "Selection") == 0)) {
@@ -171,13 +174,23 @@ void run_test(FILE *csv_file, const char* algo_name, SortFunction sort_func, int
     int *test_data = (int *)malloc(size * sizeof(int));
     memcpy(test_data, base_data, size * sizeof(int));
 
+    if (size == 1000) {
+        printf("\n--- %s on %s data ---\n", algo_name, dtype);
+        printf("Before: ");
+        print_first_n_elements(test_data, size, 10);
+    }
+
     clock_t start = clock();
     sort_func(test_data, size);
     clock_t end = clock();
 
-    double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    if (size == 1000) {
+        printf("After:  ");
+        print_first_n_elements(test_data, size, 10);
+        printf("\n");
+    }
 
-    printf("%-18s | %-8d | %-15s | %f\n", algo_name, size, dtype, cpu_time_used);
+    double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
     fprintf(csv_file, "%s,%d,%s,%f\n", algo_name, size, dtype, cpu_time_used);
 
@@ -192,7 +205,6 @@ int main() {
         printf("Error: Could not open file for writing.\n");
         return 1;
     }
-
     fprintf(csv_file, "Algorithm,Size,DataType,Time_Seconds\n");
 
     int sizes[] = {1000, 5000, 20000, 50000};
