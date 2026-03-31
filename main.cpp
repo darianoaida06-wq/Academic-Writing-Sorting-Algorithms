@@ -4,14 +4,14 @@
 #include <stdbool.h>
 #include <string.h>
 
-// --- Utility Functions ---
+
 void swap(int *a, int *b) {
     int temp = *a;
     *a = *b;
     *b = temp;
 }
 
-// Comparator for C's built-in qsort
+
 int compare_ints(const void *a, const void *b) {
     return (*(int*)a - *(int*)b);
 }
@@ -101,12 +101,10 @@ void merge_sort(int arr[], int n) {
 
 // Quick Sort Helpers
 int partition(int arr[], int low, int high) {
-    // --- STACK OVERFLOW FIX ---
-    // Pick the middle element as the pivot and swap it to the end
-    // This prevents deep recursion on already sorted arrays
+
     int mid = low + (high - low) / 2;
     swap(&arr[mid], &arr[high]);
-    // --------------------------
+   
 
     int pivot = arr[high];
     int i = (low - 1);
@@ -147,7 +145,7 @@ void generate_data(int arr[], int size, const char* data_type) {
         for (int i = 0; i < size; i++) arr[i] = size - i;
     } else if (strcmp(data_type, "almost_sorted") == 0) {
         for (int i = 0; i < size; i++) arr[i] = i;
-        int swaps = size * 0.02; // Swap 2% of elements
+        int swaps = size * 0.02; 
         if (swaps < 1) swaps = 1;
         for (int i = 0; i < swaps; i++) {
             int idx1 = rand() % size;
@@ -155,15 +153,13 @@ void generate_data(int arr[], int size, const char* data_type) {
             swap(&arr[idx1], &arr[idx2]);
         }
     } else if (strcmp(data_type, "flat") == 0) {
-        for (int i = 0; i < size; i++) arr[i] = (rand() % 5) + 1; // Values 1 to 5
+        for (int i = 0; i < size; i++) arr[i] = (rand() % 5) + 1; 
     }
 }
 
-// --- Benchmarking Framework ---
 
 typedef void (*SortFunction)(int[], int);
 
-// Notice the new FILE *csv_file parameter
 void run_test(FILE *csv_file, const char* algo_name, SortFunction sort_func, int *base_data, int size, const char* dtype) {
     // Skip O(N^2) algorithms for large datasets so you don't wait hours
     if (size > 20000 && (strcmp(algo_name, "Bubble") == 0 ||
@@ -172,7 +168,6 @@ void run_test(FILE *csv_file, const char* algo_name, SortFunction sort_func, int
         return;
     }
 
-    // Allocate a fresh array and copy the base data so we sort the exact same initial state
     int *test_data = (int *)malloc(size * sizeof(int));
     memcpy(test_data, base_data, size * sizeof(int));
 
@@ -182,10 +177,8 @@ void run_test(FILE *csv_file, const char* algo_name, SortFunction sort_func, int
 
     double cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-    // Print to the console for live tracking
     printf("%-18s | %-8d | %-15s | %f\n", algo_name, size, dtype, cpu_time_used);
 
-    // Write to the CSV file
     fprintf(csv_file, "%s,%d,%s,%f\n", algo_name, size, dtype, cpu_time_used);
 
     free(test_data);
@@ -194,14 +187,12 @@ void run_test(FILE *csv_file, const char* algo_name, SortFunction sort_func, int
 int main() {
     srand(time(NULL));
 
-    // Open the CSV file for writing
     FILE *csv_file = fopen("benchmark_results.csv", "w");
     if (csv_file == NULL) {
         printf("Error: Could not open file for writing.\n");
         return 1;
     }
 
-    // Write the CSV header row
     fprintf(csv_file, "Algorithm,Size,DataType,Time_Seconds\n");
 
     int sizes[] = {1000, 5000, 20000, 50000};
@@ -218,11 +209,9 @@ int main() {
         for (int t = 0; t < num_types; t++) {
             const char *dtype = data_types[t];
 
-            // Generate the base array once per size/type combination
             int *base_data = (int *)malloc(size * sizeof(int));
             generate_data(base_data, size, dtype);
 
-            // Pass the csv_file pointer to each test
             run_test(csv_file, "Bubble", bubble_sort, base_data, size, dtype);
             run_test(csv_file, "Insertion", insertion_sort, base_data, size, dtype);
             run_test(csv_file, "Selection", selection_sort, base_data, size, dtype);
@@ -235,7 +224,6 @@ int main() {
         printf("------------------------------------------------------------------\n");
     }
 
-    // Close the CSV file when finished
     fclose(csv_file);
     printf("Results successfully exported to benchmark_results.csv\n");
 
